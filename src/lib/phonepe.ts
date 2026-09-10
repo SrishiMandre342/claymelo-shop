@@ -43,16 +43,18 @@ export function generateUpiIntentUrls(
   upiId: string,
   upiName: string
 ) {
-  const transactionNote = `ClayMelo Order ${orderNumber}`;
+  // Clean alphanumeric note without hyphens to pass bank security filters
+  const cleanOrderNum = orderNumber.replace(/[^a-zA-Z0-9]/g, '');
+  const transactionNote = `ClayMelo Order ${cleanOrderNum}`;
   const encodedNote = encodeURIComponent(transactionNote);
-  const encodedName = encodeURIComponent(upiName);
+  const encodedName = encodeURIComponent(upiName || 'ClayMelo Boutique');
   const formattedAmount = amount.toFixed(2);
 
-  // PhonePe specific direct intent URI
-  const phonepeIntentUrl = `phonepe://pay?pa=${upiId}&pn=${encodedName}&am=${formattedAmount}&tn=${encodedNote}&cu=INR`;
-  
-  // Universal standard UPI intent URI (works with PhonePe, GPay, Paytm, etc.)
+  // Universal standard UPI intent URI (supported natively by PhonePe, GPay, Paytm, BHIM, Cred)
   const genericUpiUrl = `upi://pay?pa=${upiId}&pn=${encodedName}&am=${formattedAmount}&tn=${encodedNote}&cu=INR`;
+  
+  // Standard UPI URI for direct PhonePe trigger (avoids proprietary merchant API security rejection on personal VPAs)
+  const phonepeIntentUrl = `upi://pay?pa=${upiId}&pn=${encodedName}&am=${formattedAmount}&tn=${encodedNote}&cu=INR`;
 
   return {
     phonepeIntentUrl,

@@ -207,7 +207,7 @@ export default function PaymentPage() {
               boxShadow: '0 4px 14px rgba(95, 37, 159, 0.3)',
             }}
           >
-            <Smartphone size={18} /> Pay with PhonePe App
+            <Smartphone size={18} /> Pay with PhonePe / UPI App
           </a>
 
           <a
@@ -215,8 +215,22 @@ export default function PaymentPage() {
             className="btn btn-secondary btn-full"
             style={{ fontSize: '0.9rem' }}
           >
-            <ExternalLink size={16} /> Pay with Any UPI App (GPay / Paytm)
+            <ExternalLink size={16} /> Choose UPI App (GPay / Paytm / BHIM)
           </a>
+        </div>
+
+        <div style={{
+          marginTop: '16px',
+          padding: '10px 14px',
+          borderRadius: 'var(--radius-md)',
+          backgroundColor: '#F8FAFC',
+          border: '1px solid #E2E8F0',
+          fontSize: '0.78rem',
+          color: '#64748B',
+          textAlign: 'left',
+          lineHeight: '1.45',
+        }}>
+          💡 <strong>Security Note:</strong> UPI rules automatically decline transactions if the sender tries to pay their own registered UPI ID. Please pay from a customer bank account or scan the QR code below.
         </div>
       </div>
 
