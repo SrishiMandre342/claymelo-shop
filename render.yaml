@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: claymelo-shop
+    env: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_VERSION
+        value: 22.11.0
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PAYMENT_MODE
+        value: sandbox
+      - key: UPI_ID
+        value: sisterclaymelo@upi
+      - key: UPI_NAME
+        value: ClayMelo Boutique
+      - key: ADMIN_EMAIL
+        value: admin@claymelo.com
+      - key: ADMIN_PASSWORD
+        value: ClaymeloAdmin2026!
