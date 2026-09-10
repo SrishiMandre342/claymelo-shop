@@ -16,6 +16,7 @@ export default function PaymentPage() {
   const [loading, setLoading] = useState(true);
   const [utrNumber, setUtrNumber] = useState('');
   const [copiedUpi, setCopiedUpi] = useState(false);
+  const [copiedPhone, setCopiedPhone] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [statusMessage, setStatusMessage] = useState('');
@@ -52,6 +53,13 @@ export default function PaymentPage() {
     navigator.clipboard.writeText(paymentData.upiId);
     setCopiedUpi(true);
     setTimeout(() => setCopiedUpi(false), 2000);
+  };
+
+  const handleCopyPhone = () => {
+    const ph = paymentData?.phone || '9380340087';
+    navigator.clipboard.writeText(ph);
+    setCopiedPhone(true);
+    setTimeout(() => setCopiedPhone(false), 2000);
   };
 
   const handleVerifyPayment = async (simulate = false) => {
@@ -294,6 +302,44 @@ export default function PaymentPage() {
               {copiedUpi ? <><Check size={14} /> Copied</> : <><Copy size={14} /> Copy</>}
             </button>
           </div>
+          {/* Securely fetched sister's PhonePe Mobile Number box */}
+          {paymentData.phone && (
+            <div style={{
+              width: '100%',
+              backgroundColor: 'var(--color-gray-50)',
+              border: '1px solid var(--color-gray-200)',
+              borderRadius: 'var(--radius-md)',
+              padding: '10px 14px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              fontSize: '0.88rem',
+            }}>
+              <div>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>
+                  PhonePe / GPay Mobile Number ({paymentData.upiName})
+                </span>
+                <strong style={{ color: 'var(--color-gray-900)' }}>{paymentData.phone}</strong>
+              </div>
+              <button
+                onClick={handleCopyPhone}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  padding: '6px 10px',
+                  borderRadius: 'var(--radius-sm)',
+                  backgroundColor: copiedPhone ? '#ECFDF5' : '#ffffff',
+                  color: copiedPhone ? '#059669' : 'var(--color-gray-700)',
+                  border: '1px solid var(--border-color)',
+                  fontSize: '0.8rem',
+                  fontWeight: '600',
+                }}
+              >
+                {copiedPhone ? <><Check size={14} /> Copied</> : <><Copy size={14} /> Copy</>}
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

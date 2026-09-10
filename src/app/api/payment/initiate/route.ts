@@ -37,6 +37,10 @@ export async function POST(req: NextRequest) {
       `).run(order.id, order.total_amount);
     }
 
+    const phoneRow = db.prepare(`SELECT value FROM store_settings WHERE key = 'contact_phone'`).get() as { value: string } | undefined;
+    const rawPhone = phoneRow?.value || '9380340087';
+    const cleanPhone = rawPhone.replace(/[^0-9]/g, '').slice(-10) || '9380340087';
+
     return NextResponse.json({
       success: true,
       orderId: order.id,
@@ -45,6 +49,7 @@ export async function POST(req: NextRequest) {
       paymentMode: config.paymentMode,
       upiId: config.upiId,
       upiName: config.upiName,
+      phone: cleanPhone,
       phonepeIntentUrl,
       genericUpiUrl,
       transactionNote,
