@@ -17,8 +17,8 @@ export default function Header() {
   }
 
   const navLinks = [
-    { name: 'Home', href: '/' },
-    { name: 'Shop', href: '/shop' },
+    { name: 'Home', href: '/', isActive: pathname === '/' },
+    { name: 'Shop', href: user ? '/shop' : '/login?redirect=/shop', isActive: pathname.startsWith('/shop') },
   ];
 
   return (
@@ -92,7 +92,7 @@ export default function Header() {
           {/* Desktop Navigation Links */}
           <nav className="desktop-nav" style={{ display: 'flex', alignItems: 'center', gap: '28px' }}>
             {navLinks.map((link) => {
-              const isActive = pathname === link.href;
+              const isActive = link.isActive;
               return (
                 <Link
                   key={link.name}
@@ -126,7 +126,7 @@ export default function Header() {
           {/* Right: Quick Action Icons (Search, Wishlist, Cart, User) */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <Link
-              href="/shop"
+              href={user ? "/shop" : "/login?redirect=/shop"}
               aria-label="Search art"
               style={{
                 color: 'var(--color-gray-700)',
@@ -139,7 +139,7 @@ export default function Header() {
             </Link>
 
             <Link
-              href="/wishlist"
+              href={user ? "/wishlist" : "/login?redirect=/wishlist"}
               aria-label="Wishlist"
               style={{
                 position: 'relative',
@@ -173,7 +173,7 @@ export default function Header() {
             </Link>
 
             <Link
-              href="/cart"
+              href={user ? "/cart" : "/login?redirect=/cart"}
               aria-label="Shopping Cart"
               style={{
                 position: 'relative',

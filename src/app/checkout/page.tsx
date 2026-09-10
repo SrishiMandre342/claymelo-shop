@@ -8,7 +8,13 @@ import { useShop } from '@/context/ShopContext';
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { cartItems, cartSubtotal, user, refreshCart } = useShop();
+  const { cartItems, cartSubtotal, user, loadingUser, refreshCart } = useShop();
+
+  useEffect(() => {
+    if (!loadingUser && !user) {
+      router.replace('/login?redirect=/checkout');
+    }
+  }, [loadingUser, user, router]);
 
   const [customerName, setCustomerName] = useState(user?.fullName || '');
   const [customerPhone, setCustomerPhone] = useState('');
@@ -69,6 +75,14 @@ export default function CheckoutPage() {
     const timer = setTimeout(updateShipping, 300);
     return () => clearTimeout(timer);
   }, [state, city, pincode, cartSubtotal]);
+
+  if (loadingUser || !user) {
+    return (
+      <div className="container" style={{ padding: '80px 16px', textAlign: 'center' }}>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>Redirecting to login...</p>
+      </div>
+    );
+  }
 
   if (cartItems.length === 0) {
     return (

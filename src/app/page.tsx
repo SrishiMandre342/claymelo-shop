@@ -15,6 +15,7 @@ import {
   ShoppingBag
 } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
+import { useShop } from '@/context/ShopContext';
 
 const MARQUEE_ITEMS = [
   { emoji: '🍄', text: '100% Hand-Sculpted' },
@@ -27,6 +28,7 @@ const MARQUEE_ITEMS = [
 ];
 
 export default function HomePage() {
+  const { user, isWishlisted, toggleWishlist } = useShop();
   const [allProducts, setAllProducts] = useState<any[]>([]);
   const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
@@ -92,9 +94,16 @@ export default function HomePage() {
     setCurrentSlide((prev) => (prev + 1) % activeSlides.length);
   };
 
-  const toggleHeart = (id: string | number, e: React.MouseEvent) => {
+  const toggleHeart = async (id: string | number, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!user) {
+      window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
+      return;
+    }
+    if (typeof id === 'number') {
+      await toggleWishlist(id);
+    }
     setLikedSlides((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
@@ -243,7 +252,7 @@ export default function HomePage() {
             {/* Call to Actions */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'center' }}>
               <Link
-                href="/shop"
+                href={user ? "/shop" : "/login?redirect=/shop"}
                 className="btn btn-primary btn-lg"
                 style={{
                   backgroundColor: 'var(--primary)',
@@ -383,8 +392,8 @@ export default function HomePage() {
               >
                 <Heart
                   size={18}
-                  color={likedSlides[currentItem.id] ? '#DB2777' : '#9CA3AF'}
-                  fill={likedSlides[currentItem.id] ? '#DB2777' : 'none'}
+                  color={(typeof currentItem.id === 'number' && isWishlisted(currentItem.id)) || likedSlides[currentItem.id] ? '#DB2777' : '#9CA3AF'}
+                  fill={(typeof currentItem.id === 'number' && isWishlisted(currentItem.id)) || likedSlides[currentItem.id] ? '#DB2777' : 'none'}
                 />
               </button>
 
@@ -722,7 +731,7 @@ export default function HomePage() {
             </h2>
           </div>
           <Link
-            href="/shop"
+            href={user ? "/shop" : "/login?redirect=/shop"}
             style={{
               display: 'inline-flex',
               alignItems: 'center',

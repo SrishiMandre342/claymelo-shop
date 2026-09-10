@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Trash2, ShoppingBag, ArrowRight, ShieldCheck, Sparkles } from 'lucide-react';
@@ -8,7 +8,21 @@ import { useShop } from '@/context/ShopContext';
 
 export default function CartPage() {
   const router = useRouter();
-  const { cartItems, cartSubtotal, removeFromCart, updateCartQuantity } = useShop();
+  const { cartItems, cartSubtotal, removeFromCart, updateCartQuantity, user, loadingUser } = useShop();
+
+  useEffect(() => {
+    if (!loadingUser && !user) {
+      router.replace('/login?redirect=/cart');
+    }
+  }, [loadingUser, user, router]);
+
+  if (loadingUser || !user) {
+    return (
+      <div className="container" style={{ padding: '80px 16px', textAlign: 'center' }}>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>Redirecting to login...</p>
+      </div>
+    );
+  }
 
   const freeShippingThreshold = 999;
   const remainingForFree = Math.max(0, freeShippingThreshold - cartSubtotal);

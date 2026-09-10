@@ -11,7 +11,7 @@ export default function ProductDetailPage() {
   const router = useRouter();
   const id = params.id as string;
 
-  const { isWishlisted, toggleWishlist, addToCart } = useShop();
+  const { isWishlisted, toggleWishlist, addToCart, user } = useShop();
 
   const [product, setProduct] = useState<any>(null);
   const [selectedImage, setSelectedImage] = useState<string>('');
@@ -68,6 +68,10 @@ export default function ProductDetailPage() {
     : null;
 
   const handleAdd = async () => {
+    if (!user) {
+      router.push(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+      return;
+    }
     if (isSoldOut || addingToCart) return;
     setAddingToCart(true);
     const ok = await addToCart(product.id, quantity);
@@ -79,6 +83,10 @@ export default function ProductDetailPage() {
   };
 
   const handleOrderNow = async () => {
+    if (!user) {
+      router.push(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+      return;
+    }
     if (isSoldOut) return;
     const ok = await addToCart(product.id, quantity);
     if (ok) {
@@ -319,7 +327,13 @@ export default function ProductDetailPage() {
 
               {/* Wishlist button */}
               <button
-                onClick={() => toggleWishlist(product.id)}
+                onClick={() => {
+                  if (!user) {
+                    router.push(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+                    return;
+                  }
+                  toggleWishlist(product.id);
+                }}
                 style={{
                   marginLeft: 'auto',
                   display: 'flex',

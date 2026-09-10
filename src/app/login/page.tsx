@@ -1,13 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Shield, ArrowRight, AlertCircle, Eye, EyeOff, Sparkles, CheckCircle2 } from 'lucide-react';
 import { useShop } from '@/context/ShopContext';
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get('redirect') || '/';
   const { user } = useShop();
 
   const [email, setEmail] = useState('');
@@ -16,13 +18,15 @@ export default function LoginPage() {
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
-  if (user) {
-    if (user.role === 'admin') {
-      router.push('/admin');
-    } else {
-      router.push('/account');
+  useEffect(() => {
+    if (user) {
+      if (user.role === 'admin') {
+        router.push('/admin');
+      } else {
+        router.push(redirect.startsWith('/') ? redirect : '/');
+      }
     }
-  }
+  }, [user, router, redirect]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +52,7 @@ export default function LoginPage() {
       if (data.user?.role === 'admin') {
         window.location.href = '/admin';
       } else {
-        window.location.href = '/';
+        window.location.href = redirect.startsWith('/') ? redirect : '/';
       }
     } catch (err) {
       setErrorMsg('Something went wrong. Please check your network.');
@@ -171,11 +175,22 @@ export default function LoginPage() {
           color: 'var(--color-gray-600)',
         }}>
           Don't have an account?{' '}
-          <Link href="/register" style={{ color: 'var(--primary)', fontWeight: '600' }}>
+          <Link
+            href={redirect && redirect !== '/' ? `/register?redirect=${encodeURIComponent(redirect)}` : '/register'}
+            style={{ color: 'var(--primary)', fontWeight: '600' }}
+          >
             Register here
           </Link>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="container" style={{ padding: '48px 16px', textAlign: 'center' }}><p>Loading...</p></div>}>
+      <LoginContent />
+    </Suspense>
   );
 }

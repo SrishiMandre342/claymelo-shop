@@ -1,13 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowRight, AlertCircle } from 'lucide-react';
 import { useShop } from '@/context/ShopContext';
 
-export default function RegisterPage() {
+function RegisterContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get('redirect') || '/';
   const { user } = useShop();
 
   const [fullName, setFullName] = useState('');
@@ -17,9 +19,11 @@ export default function RegisterPage() {
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
-  if (user) {
-    router.push('/account');
-  }
+  useEffect(() => {
+    if (user) {
+      router.push(redirect.startsWith('/') ? redirect : '/account');
+    }
+  }, [user, router, redirect]);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +45,7 @@ export default function RegisterPage() {
         return;
       }
 
-      window.location.href = '/';
+      window.location.href = redirect.startsWith('/') ? redirect : '/';
     } catch (err) {
       setErrorMsg('Network error. Please try again.');
       setSubmitting(false);
@@ -163,11 +167,22 @@ export default function RegisterPage() {
           color: 'var(--color-gray-600)',
         }}>
           Already have an account?{' '}
-          <Link href="/login" style={{ color: 'var(--primary)', fontWeight: '600' }}>
+          <Link
+            href={redirect && redirect !== '/' ? `/login?redirect=${encodeURIComponent(redirect)}` : '/login'}
+            style={{ color: 'var(--primary)', fontWeight: '600' }}
+          >
             Login here
           </Link>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div className="container" style={{ padding: '48px 16px', textAlign: 'center' }}><p>Loading...</p></div>}>
+      <RegisterContent />
+    </Suspense>
   );
 }

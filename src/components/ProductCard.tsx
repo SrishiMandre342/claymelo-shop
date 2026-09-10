@@ -28,7 +28,7 @@ export default function ProductCard({
   primary_image,
   category_name,
 }: ProductCardProps) {
-  const { isWishlisted, toggleWishlist, addToCart } = useShop();
+  const { isWishlisted, toggleWishlist, addToCart, user } = useShop();
   const [adding, setAdding] = useState(false);
   const [addedSuccess, setAddedSuccess] = useState(false);
   const [animatingHeart, setAnimatingHeart] = useState(false);
@@ -39,6 +39,10 @@ export default function ProductCard({
   const handleHeartClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!user) {
+      window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+      return;
+    }
     setAnimatingHeart(true);
     await toggleWishlist(id);
     setTimeout(() => setAnimatingHeart(false), 400);
@@ -47,6 +51,10 @@ export default function ProductCard({
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!user) {
+      window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+      return;
+    }
     if (isSoldOut || adding) return;
 
     setAdding(true);

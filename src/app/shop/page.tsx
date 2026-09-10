@@ -4,14 +4,24 @@ import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
+import { useShop } from '@/context/ShopContext';
 
 function ShopContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { user, loadingUser } = useShop();
 
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!loadingUser && !user) {
+      const q = searchParams.toString();
+      const redirectTarget = `/shop${q ? `?${q}` : ''}`;
+      router.replace(`/login?redirect=${encodeURIComponent(redirectTarget)}`);
+    }
+  }, [loadingUser, user, router, searchParams]);
 
   const currentCategory = searchParams.get('category') || 'all';
   const currentSearch = searchParams.get('search') || '';
@@ -30,6 +40,7 @@ function ShopContent() {
         if (currentSort) params.set('sort', currentSort);
         if (currentAvailability === 'available') params.set('availability', 'available');
 
+        if (!user) return;
         const res = await fetch(`/api/products?${params.toString()}`);
         const data = await res.json();
         if (data.products) setProducts(data.products);
@@ -41,8 +52,10 @@ function ShopContent() {
       }
     }
 
-    fetchShopProducts();
-  }, [currentCategory, currentSearch, currentSort, currentAvailability]);
+    if (user) {
+      fetchShopProducts();
+    }
+  }, [currentCategory, currentSearch, currentSort, currentAvailability, user]);
 
   const updateFilter = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -58,6 +71,14 @@ function ShopContent() {
     e.preventDefault();
     updateFilter('search', searchInput);
   };
+
+  if (loadingUser || !user) {
+    return (
+      <div className="container" style={{ padding: '80px 16px', textAlign: 'center' }}>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>Redirecting to login...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="container" style={{ padding: '24px 16px 64px 16px' }}>

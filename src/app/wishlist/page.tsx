@@ -2,16 +2,25 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Heart, Trash2, ShoppingBag, ArrowRight } from 'lucide-react';
 import { useShop } from '@/context/ShopContext';
 
 export default function WishlistPage() {
-  const { wishlistIds, toggleWishlist, addToCart } = useShop();
+  const router = useRouter();
+  const { wishlistIds, toggleWishlist, addToCart, user, loadingUser } = useShop();
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!loadingUser && !user) {
+      router.replace('/login?redirect=/wishlist');
+    }
+  }, [loadingUser, user, router]);
+
+  useEffect(() => {
     async function loadWishlistItems() {
+      if (!user) return;
       try {
         setLoading(true);
         // Fetch all products and filter matching wishlistIds
@@ -28,8 +37,18 @@ export default function WishlistPage() {
       }
     }
 
-    loadWishlistItems();
-  }, [wishlistIds]);
+    if (user) {
+      loadWishlistItems();
+    }
+  }, [wishlistIds, user]);
+
+  if (loadingUser || !user) {
+    return (
+      <div className="container" style={{ padding: '80px 16px', textAlign: 'center' }}>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>Redirecting to login...</p>
+      </div>
+    );
+  }
 
   const handleRemove = async (productId: number) => {
     await toggleWishlist(productId);

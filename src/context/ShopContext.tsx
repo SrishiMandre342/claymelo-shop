@@ -135,6 +135,11 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
   }, [user]);
 
   const addToCart = async (productId: number, quantity: number = 1): Promise<boolean> => {
+    if (!user) {
+      const redirectPath = typeof window !== 'undefined' ? window.location.pathname + window.location.search : '/';
+      window.location.href = `/login?redirect=${encodeURIComponent(redirectPath)}`;
+      return false;
+    }
     try {
       const sid = sessionId || localStorage.getItem('cm_session_id') || '';
       const res = await fetch('/api/cart', {
@@ -177,38 +182,27 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
   };
 
   const toggleWishlist = async (productId: number): Promise<boolean> => {
-    if (user) {
-      try {
-        const res = await fetch('/api/wishlist', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ productId }),
-        });
-        const data = await res.json();
-        if (data.saved) {
-          setWishlistIds(prev => [...prev, productId]);
-          return true;
-        } else {
-          setWishlistIds(prev => prev.filter(id => id !== productId));
-          return false;
-        }
-      } catch {
+    if (!user) {
+      const redirectPath = typeof window !== 'undefined' ? window.location.pathname + window.location.search : '/';
+      window.location.href = `/login?redirect=${encodeURIComponent(redirectPath)}`;
+      return false;
+    }
+    try {
+      const res = await fetch('/api/wishlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId }),
+      });
+      const data = await res.json();
+      if (data.saved) {
+        setWishlistIds(prev => [...prev, productId]);
+        return true;
+      } else {
+        setWishlistIds(prev => prev.filter(id => id !== productId));
         return false;
       }
-    } else {
-      // Guest local wishlist
-      let next = [...wishlistIds];
-      let saved = false;
-      if (next.includes(productId)) {
-        next = next.filter(id => id !== productId);
-        saved = false;
-      } else {
-        next.push(productId);
-        saved = true;
-      }
-      setWishlistIds(next);
-      localStorage.setItem('cm_guest_wishlist', JSON.stringify(next));
-      return saved;
+    } catch {
+      return false;
     }
   };
 
