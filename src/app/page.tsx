@@ -47,8 +47,10 @@ export default function HomePage() {
         const data = await res.json();
         if (data.products) {
           setAllProducts(data.products);
-          const feat = data.products.filter((p: any) => p.is_featured);
-          setFeaturedProducts(feat.length > 0 ? feat : data.products.slice(0, 8));
+          const feat = data.products.filter(
+            (p: any) => p.is_featured === 1 || p.is_featured === true || p.is_featured === '1'
+          );
+          setFeaturedProducts(feat);
         }
         if (data.categories) {
           setCategories(data.categories);
@@ -68,14 +70,19 @@ export default function HomePage() {
     loadData();
   }, []);
 
-  // ONLY show images uploaded by the admin
+  // ONLY show products selected as "Featured on Homepage" in the hero sliding bar
   const activeSlides = React.useMemo(() => {
     return (allProducts || [])
-      .filter((p) => p.primary_image && !p.primary_image.includes('placeholder'))
+      .filter(
+        (p) =>
+          (p.is_featured === 1 || p.is_featured === true || p.is_featured === '1') &&
+          p.primary_image &&
+          !p.primary_image.includes('placeholder')
+      )
       .map((p) => ({
         id: p.id,
         name: p.name,
-        tag: p.is_featured ? '🍄 Featured Creation' : (p.category_name ? `🌸 ${p.category_name}` : '✨ Handcrafted Clay'),
+        tag: '🍄 Featured Creation',
         price: p.price,
         original_price: p.original_price,
         image: p.primary_image,
@@ -121,7 +128,7 @@ export default function HomePage() {
     price: 299,
     original_price: null,
     image: '/placeholder-clay.svg',
-    description: 'Upload your first clay piece in the Admin Dashboard.',
+    description: 'Select "Featured on Homepage" in the Admin Dashboard to showcase creations here.',
     link: '/shop',
   };
 
@@ -790,7 +797,7 @@ export default function HomePage() {
                 padding: '30px 0',
               }}
             >
-              No products found. Add your handmade clay art in the Admin Dashboard!
+              No featured creations marked yet. Tick &ldquo;Featured on Homepage&rdquo; in the Admin Dashboard to showcase items here!
             </p>
           )}
         </div>
