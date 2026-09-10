@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ShieldCheck, Copy, Check, Smartphone, QrCode, AlertCircle, ArrowRight, ExternalLink } from 'lucide-react';
+import { ShieldCheck, Copy, Check, AlertCircle, ArrowRight } from 'lucide-react';
 import UpiQrCode from '@/components/UpiQrCode';
 import { useShop } from '@/context/ShopContext';
 
@@ -16,7 +16,6 @@ export default function PaymentPage() {
   const [loading, setLoading] = useState(true);
   const [utrNumber, setUtrNumber] = useState('');
   const [copiedUpi, setCopiedUpi] = useState(false);
-  const [copiedPhone, setCopiedPhone] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [statusMessage, setStatusMessage] = useState('');
@@ -53,13 +52,6 @@ export default function PaymentPage() {
     navigator.clipboard.writeText(paymentData.upiId);
     setCopiedUpi(true);
     setTimeout(() => setCopiedUpi(false), 2000);
-  };
-
-  const handleCopyPhone = () => {
-    const ph = paymentData?.phone || '9380340087';
-    navigator.clipboard.writeText(ph);
-    setCopiedPhone(true);
-    setTimeout(() => setCopiedPhone(false), 2000);
   };
 
   const handleVerifyPayment = async (simulate = false) => {
@@ -166,12 +158,12 @@ export default function PaymentPage() {
         </p>
       </div>
 
-      {/* Amount Payable Highlight Card */}
+      {/* Scanner & UPI ID Card */}
       <div style={{
         backgroundColor: '#ffffff',
         border: '1px solid var(--border-pink)',
         borderRadius: 'var(--radius-xl)',
-        padding: '24px',
+        padding: '28px 24px',
         boxShadow: 'var(--shadow-md)',
         marginBottom: '24px',
         textAlign: 'center',
@@ -184,162 +176,51 @@ export default function PaymentPage() {
           fontSize: '2.5rem',
           fontWeight: '800',
           color: 'var(--color-gray-900)',
-          margin: '4px 0 12px 0',
+          margin: '4px 0 18px 0',
         }}>
           ₹{paymentData.amount}
         </div>
 
-        {/* Developer / Sandbox Mode Banner */}
-        {isSandbox && (
-          <div style={{
-            backgroundColor: '#FFFBEB',
-            border: '1px solid #FDE68A',
-            borderRadius: 'var(--radius-md)',
-            padding: '10px 14px',
-            marginBottom: '16px',
-            fontSize: '0.82rem',
-            color: '#92400E',
-            textAlign: 'left',
-          }}>
-            <strong>🛠️ Developer Test Mode Active:</strong> Payment gateway is running in test mode. You can test the mobile PhonePe intent below or click the instant simulation button.
-          </div>
-        )}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+          <UpiQrCode value={paymentData.genericUpiUrl} size={200} />
 
-        {/* Mobile PhonePe Direct Intent Trigger */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <a
-            href={paymentData.phonepeIntentUrl}
-            className="btn btn-primary btn-lg btn-full"
-            style={{
-              backgroundColor: '#5f259f', // Official PhonePe brand purple
-              boxShadow: '0 4px 14px rgba(95, 37, 159, 0.3)',
-            }}
-          >
-            <Smartphone size={18} /> Pay with PhonePe / UPI App
-          </a>
-
-          <a
-            href={paymentData.genericUpiUrl}
-            className="btn btn-secondary btn-full"
-            style={{ fontSize: '0.9rem' }}
-          >
-            <ExternalLink size={16} /> Choose UPI App (GPay / Paytm / BHIM)
-          </a>
-        </div>
-
-        <div style={{
-          marginTop: '16px',
-          padding: '10px 14px',
-          borderRadius: 'var(--radius-md)',
-          backgroundColor: '#F8FAFC',
-          border: '1px solid #E2E8F0',
-          fontSize: '0.78rem',
-          color: '#64748B',
-          textAlign: 'left',
-          lineHeight: '1.45',
-        }}>
-          💡 <strong>Security Note:</strong> UPI rules automatically decline transactions if the sender tries to pay their own registered UPI ID. Please pay from a customer bank account or scan the QR code below.
-        </div>
-      </div>
-
-      {/* QR Code and Manual UPI ID Fallback Box */}
-      <div style={{
-        backgroundColor: '#ffffff',
-        border: '1px solid var(--border-color)',
-        borderRadius: 'var(--radius-lg)',
-        padding: '24px',
-        boxShadow: 'var(--shadow-xs)',
-        marginBottom: '24px',
-      }}>
-        <h3 style={{
-          fontSize: '1rem',
-          fontWeight: '700',
-          color: 'var(--color-gray-900)',
-          marginBottom: '14px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-        }}>
-          <QrCode size={18} color="var(--primary)" /> Desktop Scan & UPI Details
-        </h3>
-
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px' }}>
-          <UpiQrCode value={paymentData.genericUpiUrl} size={180} />
-
-          {/* Securely fetched sister's UPI ID copy box */}
+          {/* Sister's UPI ID copy box */}
           <div style={{
             width: '100%',
             backgroundColor: 'var(--color-gray-50)',
             border: '1px solid var(--color-gray-200)',
             borderRadius: 'var(--radius-md)',
-            padding: '10px 14px',
+            padding: '12px 16px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            fontSize: '0.88rem',
+            fontSize: '0.9rem',
           }}>
-            <div>
-              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>
+            <div style={{ textAlign: 'left' }}>
+              <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', display: 'block' }}>
                 Store UPI ID ({paymentData.upiName})
               </span>
-              <strong style={{ color: 'var(--color-gray-900)' }}>{paymentData.upiId}</strong>
+              <strong style={{ color: 'var(--color-gray-900)', fontSize: '1rem' }}>{paymentData.upiId}</strong>
             </div>
             <button
               onClick={handleCopyUpi}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '4px',
-                padding: '6px 10px',
+                gap: '5px',
+                padding: '8px 14px',
                 borderRadius: 'var(--radius-sm)',
                 backgroundColor: copiedUpi ? '#ECFDF5' : '#ffffff',
                 color: copiedUpi ? '#059669' : 'var(--color-gray-700)',
                 border: '1px solid var(--border-color)',
-                fontSize: '0.8rem',
+                fontSize: '0.82rem',
                 fontWeight: '600',
+                cursor: 'pointer',
               }}
             >
               {copiedUpi ? <><Check size={14} /> Copied</> : <><Copy size={14} /> Copy</>}
             </button>
           </div>
-          {/* Securely fetched sister's PhonePe Mobile Number box */}
-          {paymentData.phone && (
-            <div style={{
-              width: '100%',
-              backgroundColor: 'var(--color-gray-50)',
-              border: '1px solid var(--color-gray-200)',
-              borderRadius: 'var(--radius-md)',
-              padding: '10px 14px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              fontSize: '0.88rem',
-            }}>
-              <div>
-                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>
-                  PhonePe / GPay Mobile Number ({paymentData.upiName})
-                </span>
-                <strong style={{ color: 'var(--color-gray-900)' }}>{paymentData.phone}</strong>
-              </div>
-              <button
-                onClick={handleCopyPhone}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  padding: '6px 10px',
-                  borderRadius: 'var(--radius-sm)',
-                  backgroundColor: copiedPhone ? '#ECFDF5' : '#ffffff',
-                  color: copiedPhone ? '#059669' : 'var(--color-gray-700)',
-                  border: '1px solid var(--border-color)',
-                  fontSize: '0.8rem',
-                  fontWeight: '600',
-                }}
-              >
-                {copiedPhone ? <><Check size={14} /> Copied</> : <><Copy size={14} /> Copy</>}
-              </button>
-            </div>
-          )}
         </div>
       </div>
 
