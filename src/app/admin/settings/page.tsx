@@ -9,7 +9,7 @@ export default function AdminSettingsPage() {
     store_tagline: 'Handmade clay creations, made with love.',
     upi_id: 'sisterclaymelo@upi',
     upi_name: 'ClayMelo Boutique',
-    instagram_url: 'https://instagram.com/claymelo.shop',
+    instagram_url: 'https://www.instagram.com/random_artz2/',
     contact_phone: '+91 98765 43210',
     contact_email: 'hello@claymelo.com',
     payment_mode: 'sandbox',
@@ -218,7 +218,7 @@ export default function AdminSettingsPage() {
               type="url"
               value={settings.instagram_url || ''}
               onChange={(e) => handleChange('instagram_url', e.target.value)}
-              placeholder="https://instagram.com/claymelo.shop"
+              placeholder="https://www.instagram.com/random_artz2/"
               className="form-input"
             />
           </div>

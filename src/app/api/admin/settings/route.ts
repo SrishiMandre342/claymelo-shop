@@ -66,7 +66,24 @@ export async function POST(req: NextRequest) {
 
     for (const [key, value] of Object.entries(body)) {
       if (key !== 'admin_password' && (typeof value === 'string' || typeof value === 'number')) {
-        insert.run(key, String(value));
+        let valStr = String(value);
+        if (key === 'instagram_url' && typeof value === 'string') {
+          let cleaned = value.trim();
+          if (cleaned.includes('instagram.com/')) {
+            try {
+              const parsed = new URL(cleaned.startsWith('http') ? cleaned : 'https://' + cleaned);
+              const parts = parsed.pathname.split('/').filter(Boolean);
+              if (parts.length > 0) {
+                cleaned = `https://www.instagram.com/${parts[0]}/`;
+              }
+            } catch {}
+          } else if (cleaned) {
+            const handle = cleaned.replace(/^@/, '').replace(/\/+$/, '');
+            cleaned = `https://www.instagram.com/${handle}/`;
+          }
+          valStr = cleaned;
+        }
+        insert.run(key, valStr);
       }
     }
 

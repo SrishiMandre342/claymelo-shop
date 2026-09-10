@@ -1,12 +1,24 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Instagram, Heart, Sparkles, ShieldCheck } from 'lucide-react';
 
 export default function Footer() {
   const pathname = usePathname();
+  const [instagramUrl, setInstagramUrl] = useState('https://www.instagram.com/random_artz2/');
+
+  useEffect(() => {
+    fetch('/api/settings')
+      .then(res => res.json())
+      .then(data => {
+        if (data.settings?.instagram_url) {
+          setInstagramUrl(data.settings.instagram_url);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Hide customer footer on admin routes
   if (pathname.startsWith('/admin')) {
@@ -50,7 +62,7 @@ export default function Footer() {
               Handcrafted clay art & boutique keychains. Every piece is sculpted with patience, detail, and love to bring a little everyday joy into your world.
             </p>
             <a
-              href="https://instagram.com/claymelo.shop"
+              href={instagramUrl}
               target="_blank"
               rel="noopener noreferrer"
               style={{
@@ -67,7 +79,7 @@ export default function Footer() {
               }}
             >
               <Instagram size={16} />
-              Follow @claymelo.shop
+              Follow @random_artz2
             </a>
           </div>
 

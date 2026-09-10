@@ -38,6 +38,7 @@ export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoPlay, setIsAutoPlay] = useState(true);
   const [likedSlides, setLikedSlides] = useState<Record<string, boolean>>({});
+  const [instagramUrl, setInstagramUrl] = useState('https://www.instagram.com/random_artz2/');
 
   useEffect(() => {
     async function loadData() {
@@ -51,6 +52,12 @@ export default function HomePage() {
         }
         if (data.categories) {
           setCategories(data.categories);
+        }
+
+        const sRes = await fetch('/api/settings');
+        const sData = await sRes.json();
+        if (sData.settings?.instagram_url) {
+          setInstagramUrl(sData.settings.instagram_url);
         }
       } catch (e) {
         console.error('Failed to load home page data', e);
@@ -920,7 +927,7 @@ export default function HomePage() {
             and sealed with high-gloss protective glaze to accompany your daily adventures.
           </p>
           <a
-            href="https://instagram.com/claymelo.shop"
+            href={instagramUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="btn btn-primary"
