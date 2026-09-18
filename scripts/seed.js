@@ -167,7 +167,7 @@ const settings = [
   ['store_tagline', 'Handmade clay creations, made with love.'],
   ['upi_id', 'sisterclaymelo@upi'],
   ['upi_name', 'ClayMelo Boutique'],
-  ['instagram_url', 'https://instagram.com/claymelo.shop'],
+  ['instagram_url', 'https://www.instagram.com/the_little_clay_melo?stkn=MXUxeWF3d2hnNDNjOA=='],
   ['contact_phone', '+91 98765 43210'],
   ['contact_email', 'hello@claymelo.com'],
   ['free_shipping_threshold', '999'],

@@ -8,7 +8,7 @@ export async function GET() {
     const db = getDb();
     const rows = db.prepare(`SELECT key, value FROM store_settings WHERE key IN ('store_name', 'store_tagline', 'instagram_url', 'contact_phone', 'contact_email')`).all() as Array<{ key: string; value: string }>;
     const settings: Record<string, string> = {
-      instagram_url: 'https://www.instagram.com/random_artz2/',
+      instagram_url: 'https://www.instagram.com/the_little_clay_melo?stkn=MXUxeWF3d2hnNDNjOA==',
     };
     rows.forEach(r => {
       settings[r.key] = r.value;
@@ -21,7 +21,8 @@ export async function GET() {
           const parsed = new URL(url.startsWith('http') ? url : 'https://' + url);
           const parts = parsed.pathname.split('/').filter(Boolean);
           if (parts.length > 0) {
-            settings.instagram_url = `https://www.instagram.com/${parts[0]}/`;
+            const query = parsed.search || '';
+            settings.instagram_url = `https://www.instagram.com/${parts[0]}/${query}`;
           }
         } catch {}
       } else if (url) {
@@ -34,7 +35,7 @@ export async function GET() {
   } catch (err) {
     return NextResponse.json({
       settings: {
-        instagram_url: 'https://www.instagram.com/random_artz2/',
+        instagram_url: 'https://www.instagram.com/the_little_clay_melo?stkn=MXUxeWF3d2hnNDNjOA==',
       },
     });
   }

@@ -74,7 +74,8 @@ export async function POST(req: NextRequest) {
               const parsed = new URL(cleaned.startsWith('http') ? cleaned : 'https://' + cleaned);
               const parts = parsed.pathname.split('/').filter(Boolean);
               if (parts.length > 0) {
-                cleaned = `https://www.instagram.com/${parts[0]}/`;
+                const query = parsed.search || '';
+                cleaned = `https://www.instagram.com/${parts[0]}/${query}`;
               }
             } catch {}
           } else if (cleaned) {

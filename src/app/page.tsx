@@ -38,7 +38,7 @@ export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoPlay, setIsAutoPlay] = useState(true);
   const [likedSlides, setLikedSlides] = useState<Record<string, boolean>>({});
-  const [instagramUrl, setInstagramUrl] = useState('https://www.instagram.com/random_artz2/');
+  const [instagramUrl, setInstagramUrl] = useState('https://www.instagram.com/the_little_clay_melo?stkn=MXUxeWF3d2hnNDNjOA==');
 
   useEffect(() => {
     async function loadData() {

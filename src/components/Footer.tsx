@@ -7,7 +7,7 @@ import { Instagram, Heart, Sparkles, ShieldCheck } from 'lucide-react';
 
 export default function Footer() {
   const pathname = usePathname();
-  const [instagramUrl, setInstagramUrl] = useState('https://www.instagram.com/random_artz2/');
+  const [instagramUrl, setInstagramUrl] = useState('https://www.instagram.com/the_little_clay_melo?stkn=MXUxeWF3d2hnNDNjOA==');
 
   useEffect(() => {
     fetch('/api/settings')
