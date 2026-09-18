@@ -42,6 +42,8 @@ export async function GET(
       '.gif': 'image/gif',
       '.svg': 'image/svg+xml',
       '.ico': 'image/x-icon',
+      '.heic': 'image/heic',
+      '.heif': 'image/heif',
     };
 
     const contentType = mimeTypes[ext] || 'application/octet-stream';
@@ -53,6 +55,7 @@ export async function GET(
         'Content-Type': contentType,
         'Content-Length': stat.size.toString(),
         'Cache-Control': 'public, max-age=31536000, immutable',
+        'Access-Control-Allow-Origin': '*',
       },
     });
   } catch (err) {

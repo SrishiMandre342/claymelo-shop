@@ -6,6 +6,7 @@ const nextConfig = {
   },
   experimental: {
     serverComponentsExternalPackages: ['node:sqlite'],
+    instrumentationHook: true,
   },
 };
 

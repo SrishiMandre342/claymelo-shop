@@ -3,18 +3,14 @@ import { requireAdmin } from '@/lib/auth';
 import path from 'path';
 import fs from 'fs';
 
+export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
+
 export async function POST(req: NextRequest) {
   try {
     const admin = await requireAdmin();
     if (!admin) {
       return NextResponse.json({ error: 'Unauthorized. Admin access required.' }, { status: 403 });
-    }
-
-    const formData = await req.formData();
-    const files = formData.getAll('files') as File[];
-
-    if (!files || files.length === 0) {
-      return NextResponse.json({ error: 'No files uploaded' }, { status: 400 });
     }
 
     const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
@@ -23,30 +19,101 @@ export async function POST(req: NextRequest) {
     }
 
     const uploadedUrls: string[] = [];
+    const contentType = req.headers.get('content-type') || '';
 
-    for (const file of files) {
-      const bytes = await file.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-
-      // Validate file extension
-      const originalName = file.name || 'image.jpg';
-      const ext = path.extname(originalName).toLowerCase() || '.jpg';
-      const allowedExts = ['.jpg', '.jpeg', '.png', '.webp'];
-
-      if (!allowedExts.includes(ext)) {
-        continue;
+    // Strategy 1: Multipart Form Data
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await req.formData();
+      let files = formData.getAll('files') as File[];
+      
+      // Also check single file field 'file'
+      if (!files || files.length === 0) {
+        const single = formData.get('file') as File | null;
+        if (single) files = [single];
       }
 
-      // Generate clean unique filename
-      const safeName = `clay_${Date.now()}_${Math.random().toString(36).substring(2, 8)}${ext}`;
-      const filePath = path.join(uploadsDir, safeName);
+      if (files && files.length > 0) {
+        for (const file of files) {
+          if (!file || typeof file.arrayBuffer !== 'function') continue;
 
-      fs.writeFileSync(filePath, buffer);
-      uploadedUrls.push(`/uploads/${safeName}`);
+          const bytes = await file.arrayBuffer();
+          const buffer = Buffer.from(bytes);
+          if (buffer.length === 0) continue;
+
+          // Determine file extension
+          const originalName = file.name || 'mobile_photo.jpg';
+          let ext = path.extname(originalName).toLowerCase();
+
+          if (!ext || ext === '.') {
+            const mime = (file.type || '').toLowerCase();
+            if (mime.includes('png')) ext = '.png';
+            else if (mime.includes('webp')) ext = '.webp';
+            else if (mime.includes('gif')) ext = '.gif';
+            else ext = '.jpg';
+          }
+
+          if (ext === '.jpeg') ext = '.jpg';
+
+          const allowedExts = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.heic', '.heif'];
+          if (!allowedExts.includes(ext)) {
+            if ((file.type || '').startsWith('image/')) {
+              ext = '.jpg';
+            } else {
+              continue;
+            }
+          }
+
+          // Generate clean unique filename
+          const safeName = `clay_${Date.now()}_${Math.random().toString(36).substring(2, 8)}${ext}`;
+          const filePath = path.join(uploadsDir, safeName);
+
+          fs.writeFileSync(filePath, buffer);
+          uploadedUrls.push(`/uploads/${safeName}`);
+        }
+      }
+    }
+
+    // Strategy 2: JSON Body with Base64 Images (Fallback for mobile network/browser quirks)
+    if (contentType.includes('application/json') || uploadedUrls.length === 0) {
+      try {
+        const body = await req.clone().json();
+        const base64List: string[] = Array.isArray(body.images)
+          ? body.images
+          : body.image
+          ? [body.image]
+          : [];
+
+        for (const item of base64List) {
+          if (typeof item !== 'string') continue;
+          const matches = item.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+          if (matches && matches.length === 3) {
+            const mimeType = matches[1].toLowerCase();
+            const base64Data = matches[2];
+            const buffer = Buffer.from(base64Data, 'base64');
+            if (buffer.length === 0) continue;
+
+            let ext = '.jpg';
+            if (mimeType.includes('png')) ext = '.png';
+            else if (mimeType.includes('webp')) ext = '.webp';
+            else if (mimeType.includes('gif')) ext = '.gif';
+
+            const safeName = `clay_${Date.now()}_${Math.random().toString(36).substring(2, 8)}${ext}`;
+            const filePath = path.join(uploadsDir, safeName);
+
+            fs.writeFileSync(filePath, buffer);
+            uploadedUrls.push(`/uploads/${safeName}`);
+          }
+        }
+      } catch {
+        // Not a JSON request or empty body, ignore
+      }
     }
 
     if (uploadedUrls.length === 0) {
-      return NextResponse.json({ error: 'Please upload valid image files (JPG, PNG, or WEBP).' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Please upload valid image files (JPG, PNG, or WEBP).' },
+        { status: 400 }
+      );
     }
 
     return NextResponse.json({

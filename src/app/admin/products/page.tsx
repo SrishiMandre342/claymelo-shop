@@ -107,33 +107,147 @@ export default function AdminProductsPage() {
     }
   };
 
+  // Helper: Client-side auto compression for high-res mobile camera photos (HEIC/JPEG/PNG)
+  const compressAndFormatImage = async (file: File): Promise<File> => {
+    // If not an image, return original
+    if (!file.type.startsWith('image/') && !/\.(jpe?g|png|webp|heic|heif)$/i.test(file.name)) {
+      return file;
+    }
+
+    return new Promise((resolve) => {
+      const img = new Image();
+      const objectUrl = URL.createObjectURL(file);
+
+      img.onload = () => {
+        try {
+          URL.revokeObjectURL(objectUrl);
+          const canvas = document.createElement('canvas');
+          let width = img.naturalWidth || img.width;
+          let height = img.naturalHeight || img.height;
+          const maxDimension = 1600;
+
+          if (width > maxDimension || height > maxDimension) {
+            if (width > height) {
+              height = Math.round((height * maxDimension) / width);
+              width = maxDimension;
+            } else {
+              width = Math.round((width * maxDimension) / height);
+              height = maxDimension;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve(file);
+            return;
+          }
+
+          ctx.drawImage(img, 0, 0, width, height);
+
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) {
+                resolve(file);
+                return;
+              }
+              const cleanBase = (file.name || 'mobile_photo')
+                .replace(/\.[^/.]+$/, '')
+                .replace(/[^\w-]/g, '_');
+              const compressedFile = new File([blob], `${cleanBase}.jpg`, {
+                type: 'image/jpeg',
+                lastModified: Date.now(),
+              });
+              resolve(compressedFile);
+            },
+            'image/jpeg',
+            0.85
+          );
+        } catch (err) {
+          console.warn('Canvas resize failed, falling back to original:', err);
+          resolve(file);
+        }
+      };
+
+      img.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        resolve(file);
+      };
+
+      img.src = objectUrl;
+    });
+  };
+
+  // Helper: convert File to base64 Data URL for network fallback
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (err) => reject(err);
+      reader.readAsDataURL(file);
+    });
+  };
+
   // Upload image handler
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
+    const rawFiles = e.target.files;
+    if (!rawFiles || rawFiles.length === 0) return;
 
     setUploadingImage(true);
     setErrorMsg('');
 
     try {
-      const formData = new FormData();
-      for (let i = 0; i < files.length; i++) {
-        formData.append('files', files[i]);
+      // 1. Process and auto-compress all selected photos (resizes huge 10MB+ phone shots to ~150KB-250KB)
+      const processedFiles: File[] = [];
+      for (let i = 0; i < rawFiles.length; i++) {
+        const compressed = await compressAndFormatImage(rawFiles[i]);
+        processedFiles.push(compressed);
       }
 
-      const res = await fetch('/api/admin/upload', {
+      // 2. Upload via multipart FormData
+      const formData = new FormData();
+      for (const file of processedFiles) {
+        formData.append('files', file);
+      }
+
+      let res = await fetch('/api/admin/upload', {
         method: 'POST',
         body: formData,
       });
 
-      const data = await res.json();
-      if (res.ok && data.urls) {
+      let data: any = null;
+      try {
+        data = await res.json();
+      } catch {
+        data = null;
+      }
+
+      // 3. Fallback to base64 JSON payload if multipart failed (for restrictive mobile networks)
+      if (!res.ok || !data?.urls || data.urls.length === 0) {
+        const base64List: string[] = [];
+        for (const file of processedFiles) {
+          const b64 = await fileToBase64(file);
+          base64List.push(b64);
+        }
+
+        res = await fetch('/api/admin/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ images: base64List }),
+        });
+
+        data = await res.json();
+      }
+
+      if (res.ok && data?.urls && data.urls.length > 0) {
         setImages(prev => [...prev, ...data.urls]);
       } else {
-        setErrorMsg(data.error || 'Failed to upload image');
+        setErrorMsg(data?.error || 'Failed to upload image. Please try again.');
       }
-    } catch (err) {
-      setErrorMsg('Image upload failed. Please try again.');
+    } catch (err: any) {
+      console.error('Upload error:', err);
+      setErrorMsg('Image upload failed. Please try again with another photo.');
     } finally {
       setUploadingImage(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -478,28 +592,30 @@ export default function AdminProductsPage() {
                   backgroundColor: 'var(--color-pink-50)',
                   textAlign: 'center',
                   cursor: 'pointer',
-                }} onClick={() => fileInputRef.current?.click()}>
+                }} onClick={() => !uploadingImage && fileInputRef.current?.click()}>
                   <Upload size={26} color="var(--primary)" style={{ margin: '0 auto 8px auto' }} />
                   <div style={{ fontSize: '0.88rem', fontWeight: '600', color: 'var(--color-gray-900)' }}>
-                    Click to upload art photos from your device
+                    {uploadingImage ? 'Optimizing & Uploading Photo...' : 'Click to upload art photos from your device'}
                   </div>
                   <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                    Supports JPG, PNG, WEBP from your phone or computer
+                    Auto-optimized for phones and laptops (JPG, PNG, HEIC, WEBP)
                   </span>
                   <input
                     ref={fileInputRef}
                     type="file"
                     multiple
-                    accept="image/*"
+                    accept="image/*,.heic,.heif,.jpg,.jpeg,.png,.webp"
                     onChange={handleFileUpload}
+                    disabled={uploadingImage}
                     style={{ display: 'none' }}
                   />
                 </div>
 
                 {uploadingImage && (
-                  <span style={{ fontSize: '0.8rem', color: 'var(--primary)', marginTop: '4px' }}>
-                    Uploading and saving image to store...
-                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center', marginTop: '10px', color: 'var(--primary)', fontSize: '0.84rem', fontWeight: '600' }}>
+                    <Sparkles size={16} />
+                    <span>Compressing & saving mobile photo to store...</span>
+                  </div>
                 )}
 
                 {/* Uploaded Images Preview Thumbnails */}
@@ -628,11 +744,15 @@ export default function AdminProductsPage() {
               {/* Save Button */}
               <button
                 type="submit"
-                disabled={submitting}
+                disabled={submitting || uploadingImage}
                 className="btn btn-primary btn-lg btn-full"
                 style={{ marginTop: '8px' }}
               >
-                {submitting ? 'Saving Art Piece...' : (
+                {uploadingImage ? (
+                  'Please wait, photo is uploading...'
+                ) : submitting ? (
+                  'Saving Art Piece...'
+                ) : (
                   <>
                     <Check size={18} /> {editingProduct ? 'Update Product' : 'Publish to Store'}
                   </>
