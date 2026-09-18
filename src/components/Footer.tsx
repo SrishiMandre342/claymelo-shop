@@ -79,7 +79,7 @@ export default function Footer() {
               }}
             >
               <Instagram size={16} />
-              Follow @random_artz2
+              Follow @the_little_clay_melo
             </a>
           </div>
 
