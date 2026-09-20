@@ -281,27 +281,6 @@ export default function HomePage() {
                 <ShoppingBag size={18} /> Shop Clay Drops <ArrowRight size={17} />
               </Link>
             </div>
-
-            {/* Social Proof Mini Bar */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                marginTop: '30px',
-                paddingTop: '20px',
-                borderTop: '1px dashed #FBCFE8',
-              }}
-            >
-              <div style={{ display: 'flex', color: '#F59E0B' }}>
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} size={15} fill="#F59E0B" />
-                ))}
-              </div>
-              <span style={{ fontSize: '0.84rem', fontWeight: '600', color: '#6B7280' }}>
-                <strong style={{ color: '#1F2937' }}>500+ happy buyers</strong> • Instagram community loved 💖
-              </span>
-            </div>
           </div>
 
           {/* Right Visual Focus: "Sliding Window" of Clay Arts */}
