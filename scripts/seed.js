@@ -206,6 +206,7 @@ insertRule.run('pincode', '560001', 39);
 console.log('Seeding product categories...');
 const categories = [
   { name: 'Clay Keychains', slug: 'clay-keychains', desc: 'Handcrafted polymer clay keychains' },
+  { name: 'Ear Cuffs', slug: 'ear-cuffs', desc: 'Handcrafted polymer clay ear cuffs' },
   { name: 'Trinket Dishes', slug: 'trinket-dishes', desc: 'Glazed clay vanity & jewelry dishes' },
   { name: 'Desk Buddies', slug: 'desk-buddies', desc: 'Miniature clay companions for desks' },
   { name: 'Phone Charms', slug: 'phone-charms', desc: 'Handmade clay charms for phones & bags' },

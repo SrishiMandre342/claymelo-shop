@@ -6,7 +6,7 @@ const db = new DatabaseSync(dbPath);
 
 // Delete other categories
 db.exec(`
-  DELETE FROM categories WHERE slug NOT IN ('clay-keychains', 'keychains');
+  DELETE FROM categories WHERE slug NOT IN ('clay-keychains', 'keychains', 'ear-cuffs');
   UPDATE categories SET name = 'Keychains', slug = 'keychains' WHERE slug = 'clay-keychains';
 `);
 
