@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth';
 import { getDb } from '@/lib/db';
+import { syncDatabaseToGitHub } from '@/lib/github-sync';
 
 export const dynamic = 'force-dynamic';
 
@@ -110,6 +111,10 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // Asynchronously commit updated SQLite database to GitHub repository
+    syncDatabaseToGitHub(`Add product "${name.trim()}" (₹${price})`)
+      .catch(err => console.error('[Product DB Sync Error]', err));
+
     return NextResponse.json({ success: true, productId, slug });
   } catch (err: any) {
     console.error('Admin create product error:', err);
@@ -181,6 +186,10 @@ export async function PUT(req: NextRequest) {
       });
     }
 
+    // Asynchronously commit updated SQLite database to GitHub repository
+    syncDatabaseToGitHub(`Update product "${name.trim()}" (ID ${id})`)
+      .catch(err => console.error('[Product DB Sync Error]', err));
+
     return NextResponse.json({ success: true });
   } catch (err: any) {
     console.error('Admin update product error:', err);
@@ -204,6 +213,10 @@ export async function DELETE(req: NextRequest) {
 
     const db = getDb();
     db.prepare(`DELETE FROM products WHERE id = ?`).run(id);
+
+    // Asynchronously commit updated SQLite database to GitHub repository
+    syncDatabaseToGitHub(`Delete product ID ${id}`)
+      .catch(err => console.error('[Product DB Sync Error]', err));
 
     return NextResponse.json({ success: true });
   } catch (err: any) {

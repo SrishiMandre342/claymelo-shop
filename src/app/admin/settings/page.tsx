@@ -20,6 +20,7 @@ export default function AdminSettingsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [githubSyncActive, setGithubSyncActive] = useState(false);
 
   useEffect(() => {
     loadSettings();
@@ -32,6 +33,9 @@ export default function AdminSettingsPage() {
       const data = await res.json();
       if (data.settings) {
         setSettings(prev => ({ ...prev, ...data.settings }));
+      }
+      if (data.githubSyncActive !== undefined) {
+        setGithubSyncActive(data.githubSyncActive);
       }
     } catch (err) {
       console.error('Failed to load settings', err);
@@ -283,6 +287,50 @@ export default function AdminSettingsPage() {
               </span>
             </div>
           </div>
+        </div>
+
+        {/* Mobile Cloud Persistence (GitHub Auto-Commit) Status Card */}
+        <div style={{
+          backgroundColor: '#ffffff',
+          border: '1px solid var(--border-color)',
+          borderRadius: 'var(--radius-lg)',
+          padding: '24px',
+          boxShadow: 'var(--shadow-xs)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: '700', color: 'var(--color-gray-900)', margin: 0 }}>
+              Mobile Cloud Persistence (GitHub Auto-Commit) ☁️
+            </h2>
+            <span className={githubSyncActive ? 'badge-pill badge-green' : 'badge-pill badge-yellow'}>
+              {githubSyncActive ? '● Active & Connected' : '○ GITHUB_TOKEN Needed on Render'}
+            </span>
+          </div>
+
+          <p style={{ fontSize: '0.86rem', color: 'var(--text-muted)', lineHeight: '1.5', marginBottom: '14px' }}>
+            {githubSyncActive
+              ? '✅ Every product and photo uploaded from your mobile phone is automatically committed directly to your GitHub repository (SrishiMandre342/claymelo-shop) so it will NEVER disappear, even when Render restarts or spins down.'
+              : 'To make products and photos added from your mobile phone 100% permanent on Render, add your GitHub Personal Access Token (PAT) as an environment variable (GITHUB_TOKEN) in your Render dashboard.'}
+          </p>
+
+          {!githubSyncActive && (
+            <div style={{
+              backgroundColor: 'var(--color-pink-50)',
+              border: '1px solid var(--border-pink)',
+              borderRadius: 'var(--radius-md)',
+              padding: '14px',
+              fontSize: '0.82rem',
+              color: 'var(--color-gray-800)',
+              lineHeight: '1.6'
+            }}>
+              <strong>How to connect in 1 minute:</strong>
+              <ol style={{ paddingLeft: '20px', marginTop: '6px', marginBottom: 0 }}>
+                <li>On GitHub, go to <strong>Settings → Developer Settings → Personal Access Tokens (classic)</strong>.</li>
+                <li>Generate a token with <code>repo</code> permissions and copy it.</li>
+                <li>In Render.com dashboard, open your <code>claymelo-shop</code> Web Service → <strong>Environment</strong>.</li>
+                <li>Add key: <code>GITHUB_TOKEN</code> with your copied token, and Save.</li>
+              </ol>
+            </div>
+          )}
         </div>
 
         {/* Store Active Status */}

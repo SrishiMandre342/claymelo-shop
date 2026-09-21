@@ -30,8 +30,8 @@ export default function CheckoutPage() {
   const [saveAddress, setSaveAddress] = useState(true);
 
   // Dynamic shipping state from backend
-  const [shippingFee, setShippingFee] = useState<number>(49);
-  const [shippingRuleMatched, setShippingRuleMatched] = useState<string>('State rate (Karnataka)');
+  const [shippingFee, setShippingFee] = useState<number>(79);
+  const [shippingRuleMatched, setShippingRuleMatched] = useState<string>('Standard Pan-India Shipping');
   const [calculatingShipping, setCalculatingShipping] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string>('');
   const [submitting, setSubmitting] = useState<boolean>(false);

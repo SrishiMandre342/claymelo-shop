@@ -22,7 +22,12 @@ export async function GET(req: NextRequest) {
       settings['admin_name'] = adminUser.full_name;
     }
 
-    return NextResponse.json({ settings });
+    const { isGitHubSyncConfigured } = await import('@/lib/github-sync');
+
+    return NextResponse.json({
+      settings,
+      githubSyncActive: isGitHubSyncConfigured(),
+    });
   } catch (err: any) {
     console.error('Fetch settings error:', err);
     return NextResponse.json({ error: 'Failed to fetch settings' }, { status: 500 });

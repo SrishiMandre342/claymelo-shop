@@ -41,10 +41,16 @@ export async function POST(req: NextRequest) {
     }
 
     if (ruleType && ruleValue && rate !== undefined) {
+      const cleanValue = ruleValue.trim().toLowerCase();
+      db.prepare(`
+        DELETE FROM shipping_rules 
+        WHERE rule_type = ? AND LOWER(rule_value) = ?
+      `).run(ruleType, cleanValue);
+
       db.prepare(`
         INSERT INTO shipping_rules (rule_type, rule_value, rate)
-        VALUES (?, LOWER(?), ?)
-      `).run(ruleType, ruleValue.trim(), parseFloat(rate));
+        VALUES (?, ?, ?)
+      `).run(ruleType, cleanValue, parseFloat(rate));
     }
 
     return NextResponse.json({ success: true });

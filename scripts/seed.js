@@ -197,11 +197,6 @@ console.log('Seeding shipping rules...');
 db.exec(`DELETE FROM shipping_rules;`);
 const insertRule = db.prepare(`INSERT INTO shipping_rules (rule_type, rule_value, rate) VALUES (?, ?, ?)`);
 insertRule.run('default', 'all', 79);
-insertRule.run('state', 'karnataka', 49);
-insertRule.run('state', 'tamil nadu', 65);
-insertRule.run('state', 'kerala', 65);
-insertRule.run('state', 'maharashtra', 70);
-insertRule.run('pincode', '560001', 39);
 
 console.log('Seeding product categories...');
 const categories = [

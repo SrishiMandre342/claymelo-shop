@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth';
+import { syncFileToGitHub } from '@/lib/github-sync';
 import path from 'path';
 import fs from 'fs';
 
@@ -69,6 +70,10 @@ export async function POST(req: NextRequest) {
 
           fs.writeFileSync(filePath, buffer);
           uploadedUrls.push(`/uploads/${safeName}`);
+
+          // Asynchronously persist to GitHub repository for permanent cloud survival
+          syncFileToGitHub(`public/uploads/${safeName}`, `[ClayMelo Admin] Upload photo ${safeName}`)
+            .catch((err) => console.error('[Upload Sync Error]', err));
         }
       }
     }
@@ -102,6 +107,10 @@ export async function POST(req: NextRequest) {
 
             fs.writeFileSync(filePath, buffer);
             uploadedUrls.push(`/uploads/${safeName}`);
+
+            // Asynchronously persist to GitHub repository for permanent cloud survival
+            syncFileToGitHub(`public/uploads/${safeName}`, `[ClayMelo Admin] Upload photo ${safeName}`)
+              .catch((err) => console.error('[Upload Sync Error]', err));
           }
         }
       } catch {

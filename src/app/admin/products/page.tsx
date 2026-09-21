@@ -124,7 +124,7 @@ export default function AdminProductsPage() {
           const canvas = document.createElement('canvas');
           let width = img.naturalWidth || img.width;
           let height = img.naturalHeight || img.height;
-          const maxDimension = 1600;
+          const maxDimension = 1200;
 
           if (width > maxDimension || height > maxDimension) {
             if (width > height) {
@@ -155,14 +155,22 @@ export default function AdminProductsPage() {
               const cleanBase = (file.name || 'mobile_photo')
                 .replace(/\.[^/.]+$/, '')
                 .replace(/[^\w-]/g, '_');
-              const compressedFile = new File([blob], `${cleanBase}.jpg`, {
-                type: 'image/jpeg',
-                lastModified: Date.now(),
-              });
-              resolve(compressedFile);
+              try {
+                const compressedFile = new File([blob], `${cleanBase}.jpg`, {
+                  type: 'image/jpeg',
+                  lastModified: Date.now(),
+                });
+                resolve(compressedFile);
+              } catch {
+                // Fallback for mobile browsers where new File() is restricted
+                const blobAsFile = blob as any;
+                blobAsFile.name = `${cleanBase}.jpg`;
+                blobAsFile.lastModified = Date.now();
+                resolve(blobAsFile);
+              }
             },
             'image/jpeg',
-            0.85
+            0.82
           );
         } catch (err) {
           console.warn('Canvas resize failed, falling back to original:', err);

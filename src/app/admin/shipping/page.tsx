@@ -9,9 +9,9 @@ export default function AdminShippingPage() {
   const [loading, setLoading] = useState(true);
 
   // New Rule Form
-  const [ruleType, setRuleType] = useState('state');
+  const [ruleType, setRuleType] = useState('default');
   const [ruleValue, setRuleValue] = useState('');
-  const [rate, setRate] = useState('');
+  const [rate, setRate] = useState('79');
   const [submitting, setSubmitting] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -60,7 +60,8 @@ export default function AdminShippingPage() {
     e.preventDefault();
     setErrorMsg('');
 
-    if (!ruleValue.trim() || !rate) {
+    const targetValue = ruleType === 'default' ? 'all' : ruleValue.trim();
+    if (!targetValue || !rate) {
       setErrorMsg('Please specify the location rule and rate.');
       return;
     }
@@ -73,14 +74,16 @@ export default function AdminShippingPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ruleType,
-          ruleValue: ruleValue.trim(),
+          ruleValue: targetValue,
           rate: parseFloat(rate),
         }),
       });
 
       if (res.ok) {
-        setRuleValue('');
-        setRate('');
+        if (ruleType !== 'default') {
+          setRuleValue('');
+        }
+        setRate('79');
         await loadShippingConfig();
       } else {
         setErrorMsg('Failed to add rule');
@@ -122,7 +125,7 @@ export default function AdminShippingPage() {
           Shipping Management 🚚
         </h1>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>
-          Configure dynamic location-based rates for Karnataka, pan-India states, and specific pincodes.
+          Configure dynamic location-based rates across India (Default ₹79 for all states including Karnataka).
         </p>
       </div>
 
@@ -200,27 +203,80 @@ export default function AdminShippingPage() {
             <label className="form-label">Rule Target</label>
             <select
               value={ruleType}
-              onChange={(e) => setRuleType(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setRuleType(val);
+                if (val === 'default') {
+                  setRuleValue('');
+                }
+              }}
               className="form-select"
             >
+              <option value="default">Store Default Fallback (All States / India - ₹79)</option>
               <option value="state">By State (e.g. Karnataka)</option>
               <option value="city">By City (e.g. Bangalore)</option>
               <option value="pincode">By Exact Pincode (e.g. 560001)</option>
-              <option value="default">Store Default Fallback</option>
             </select>
           </div>
 
           <div className="form-group" style={{ marginBottom: 0 }}>
             <label className="form-label">Location Name / Code</label>
-            <input
-              type="text"
-              required={ruleType !== 'default'}
-              value={ruleType === 'default' ? 'All other locations' : ruleValue}
-              onChange={(e) => setRuleValue(e.target.value)}
-              disabled={ruleType === 'default'}
-              placeholder={ruleType === 'pincode' ? 'e.g. 560001' : 'e.g. Karnataka'}
-              className="form-input"
-            />
+            {ruleType === 'default' ? (
+              <input
+                type="text"
+                disabled
+                value="All India / All States"
+                className="form-input"
+                style={{ backgroundColor: 'var(--color-gray-100)', color: 'var(--text-muted)' }}
+              />
+            ) : ruleType === 'state' ? (
+              <>
+                <input
+                  type="text"
+                  required
+                  list="admin-states-list"
+                  value={ruleValue}
+                  onChange={(e) => setRuleValue(e.target.value)}
+                  placeholder="Type or select state (e.g. Karnataka)"
+                  className="form-input"
+                />
+                <datalist id="admin-states-list">
+                  <option value="Karnataka" />
+                  <option value="Tamil Nadu" />
+                  <option value="Kerala" />
+                  <option value="Maharashtra" />
+                  <option value="Delhi" />
+                  <option value="Andhra Pradesh" />
+                  <option value="Telangana" />
+                  <option value="Goa" />
+                  <option value="Gujarat" />
+                  <option value="Haryana" />
+                  <option value="Rajasthan" />
+                  <option value="Uttar Pradesh" />
+                  <option value="West Bengal" />
+                  <option value="Punjab" />
+                  <option value="Madhya Pradesh" />
+                  <option value="Bihar" />
+                  <option value="Odisha" />
+                  <option value="Assam" />
+                  <option value="Chandigarh" />
+                  <option value="Chhattisgarh" />
+                  <option value="Himachal Pradesh" />
+                  <option value="Jammu & Kashmir" />
+                  <option value="Jharkhand" />
+                  <option value="Uttarakhand" />
+                </datalist>
+              </>
+            ) : (
+              <input
+                type="text"
+                required
+                value={ruleValue}
+                onChange={(e) => setRuleValue(e.target.value)}
+                placeholder={ruleType === 'pincode' ? 'e.g. 560001' : 'e.g. Bangalore'}
+                className="form-input"
+              />
+            )}
           </div>
 
           <div className="form-group" style={{ marginBottom: 0 }}>
@@ -231,7 +287,7 @@ export default function AdminShippingPage() {
               min="0"
               value={rate}
               onChange={(e) => setRate(e.target.value)}
-              placeholder="e.g. 49"
+              placeholder="79"
               className="form-input"
             />
           </div>
@@ -292,7 +348,7 @@ export default function AdminShippingPage() {
                       </span>
                     </td>
                     <td style={{ padding: '12px 16px', fontWeight: '600', textTransform: 'capitalize' }}>
-                      {r.rule_value}
+                      {r.rule_type === 'default' ? 'All States (Pan-India)' : r.rule_value}
                     </td>
                     <td style={{ padding: '12px 16px', fontWeight: '700', color: 'var(--color-gray-900)' }}>
                       ₹{r.rate}

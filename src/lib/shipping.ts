@@ -100,6 +100,6 @@ export function calculateShipping(
     shippingFee: defaultFee,
     freeShippingApplied: false,
     freeShippingThreshold: freeThreshold,
-    ruleMatched: 'Standard Flat Rate',
+    ruleMatched: 'Standard Flat Rate (All India)',
   };
 }
