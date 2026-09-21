@@ -56,7 +56,7 @@ export async function syncFileToGitHub(
       try {
         const getRes = await fetch(
           `https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/contents/${gitPath}?ref=${GITHUB_BRANCH}`,
-          { headers }
+          { headers, cache: 'no-store' }
         );
         if (getRes.ok) {
           const data = await getRes.json();
@@ -66,9 +66,13 @@ export async function syncFileToGitHub(
         // Not found or network error, proceed as new file creation
       }
 
-      // 2. Commit the file to GitHub repository
+      // 2. Commit the file to GitHub repository with [skip render] to prevent Render auto-deploys
+      const finalMessage = commitMessage.includes('[skip render]')
+        ? commitMessage
+        : `[skip render] ${commitMessage}`;
+
       const putBody: Record<string, any> = {
-        message: commitMessage,
+        message: finalMessage,
         content: base64Content,
         branch: GITHUB_BRANCH,
       };
@@ -117,7 +121,7 @@ export async function syncDatabaseToGitHub(commitReason: string = 'Update store 
     const db = getDb();
     // Force write all pending WAL changes into claymelo.db before committing
     try {
-      db.exec('PRAGMA wal_checkpoint(TRUNCATE);');
+      db.prepare('PRAGMA wal_checkpoint(TRUNCATE);').get();
     } catch (walErr) {
       console.warn('[GitHub Sync] WAL checkpoint warning:', walErr);
     }

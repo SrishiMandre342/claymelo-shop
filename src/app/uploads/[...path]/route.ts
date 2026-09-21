@@ -25,6 +25,55 @@ export async function GET(
     }
 
     if (!fs.existsSync(safePath)) {
+      // If image is missing on ephemeral disk (e.g. after container restart), fetch it from GitHub
+      const token = process.env.GITHUB_TOKEN;
+      const owner = process.env.GITHUB_REPO_OWNER || 'SrishiMandre342';
+      const repo = process.env.GITHUB_REPO_NAME || 'claymelo-shop';
+      const branch = process.env.GITHUB_BRANCH || 'main';
+
+      if (token) {
+        try {
+          const relativeGitPath = `public/uploads/${pathSegments.join('/')}`;
+          const ghRes = await fetch(
+            `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${relativeGitPath}`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          if (ghRes.ok) {
+            const arrayBuffer = await ghRes.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+            try {
+              fs.mkdirSync(path.dirname(safePath), { recursive: true });
+              fs.writeFileSync(safePath, buffer);
+            } catch {}
+
+            const ext = path.extname(safePath).toLowerCase();
+            const mimeTypes: Record<string, string> = {
+              '.jpg': 'image/jpeg',
+              '.jpeg': 'image/jpeg',
+              '.png': 'image/png',
+              '.webp': 'image/webp',
+              '.gif': 'image/gif',
+              '.svg': 'image/svg+xml',
+            };
+            const contentType = mimeTypes[ext] || 'application/octet-stream';
+
+            return new NextResponse(buffer, {
+              status: 200,
+              headers: {
+                'Content-Type': contentType,
+                'Content-Length': buffer.length.toString(),
+                'Cache-Control': 'public, max-age=31536000, immutable',
+                'Access-Control-Allow-Origin': '*',
+              },
+            });
+          }
+        } catch (fetchErr) {
+          console.error('Error fetching image from GitHub:', fetchErr);
+        }
+      }
+
       return new NextResponse('File not found', { status: 404 });
     }
 
